@@ -13,15 +13,6 @@ set cpo&vim
 
 " Utilities {{{1
 
-function! s:join(...)
-  let ret = []
-  for str in a:000
-    let ret = add(ret, substitute(str, s:slash.'\+$', '', ''))
-  endfor
-
-  return join(ret, s:slash)
-endfunction
-
 function! s:relpath(path, ...)
   let path = fnamemodify(a:path, ':p')
 
@@ -29,7 +20,7 @@ function! s:relpath(path, ...)
     let rel = fnamemodify(a:1, ':p')
     return substitute(path, rel, '', '')
   else
-    let rel = getcwd() . s:slash
+    let rel = getcwd() . '/'
     let rel = substitute(path, rel, '', '')
     return rel == '' ? './' : rel
   endif
@@ -39,7 +30,18 @@ endfunction
 " Interface {{{1
 
 function! s:Edit(cmd)
-  exe a:cmd s:relpath(s:join(b:supervisor_root, 'supervisord.conf'))
+  exe a:cmd s:relpath(b:supervisor.config_file)
+endfunction
+
+" }}}
+" Supervisor object methods {{{1
+
+function! s:sup_path(...) dict abort
+  let ret = [self.root]
+  for str in a:000
+    let ret = add(ret, substitute(str, '/\+$', '', ''))
+  endfor
+  return join(ret, '/')
 endfunction
 
 " }}}
@@ -53,10 +55,15 @@ function! s:BufCommands()
 endfunction
 
 function! supervisor#BufInit()
+  let sup = {}
+  let sup.root = b:supervisor_root
+  let sup.path = function('s:sup_path')
+  let sup.config_file = sup.path('supervisord.conf')
+
+  let b:supervisor = sup
+
   call s:BufCommands()
 endfunction
-
-let s:slash = '/'
 
 " }}}
 
