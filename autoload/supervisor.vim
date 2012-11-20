@@ -56,9 +56,7 @@ function! supervisor#BufInit()
   call s:BufCommands()
 endfunction
 
-if !exists('s:slash')
-  let s:slash = has('win32') || has('win64') ? '\' : '/'
-endif
+let s:slash = '/'
 
 " }}}
 
