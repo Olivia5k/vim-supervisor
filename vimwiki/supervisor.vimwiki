@@ -1,0 +1,50 @@
+* [ ] Control buffer
+    * [ ] Start mapping
+    * [ ] Get input from supervisorctl
+    * [ ] Buffer mappings
+        * [ ] q
+        * [ ] R
+        * [ ] S
+        * [ ] o/e
+    * [ ] Syntax highlighting
+        * [ ] App names
+        * [ ] Statuses
+            * [ ] RUNNING
+            * [ ] STOPPED
+            * [ ] FATAL
+            * [ ] STARTING
+            * [ ] STOPPING
+        * [ ] pid
+        * [ ] times
+* [ ] Configuration file parsing
+    * [ ] Supervisord object
+        * [ ] log files
+        * [ ] cwd
+        * [ ] include glob
+    * [ ] Supervisor application object
+        * [ ] log files
+        * [ ] cwd
+* [ ] Configuration
+    * [ ] Project discovery
+    * [ ] App directories
+* [ ] Commands
+    * [ ] :Supervisor
+        * [ ] Tab completion
+    * [ ] :Sstatus
+    * [ ] Controllers
+        * [ ] :Srestart, :Sstart, :Sstop
+        * [ ] Tab completion
+    * [ ] :Stail
+        * [ ] TailBundle detection
+        * [ ] Tab completion
+* [ ] Autocommands
+    * [ ] Auto-HUP on BufSavePost
+        * [ ] Configurable signal
+    * [ ] Only when actually inside the project
+* [o] Project detection
+    * [o] supervisord.conf
+        * [X] Straight up
+        * [ ] Any parent containing?
+    * [X] supervisord/supervisord.conf
+* [X] Configuration file editing
+    * [X] The split variants
