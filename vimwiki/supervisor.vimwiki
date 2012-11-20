@@ -16,10 +16,10 @@
             * [ ] STOPPING
         * [ ] pid
         * [ ] times
-* [ ] Configuration file parsing
-    * [ ] Supervisord object
-        * [ ] log files
-        * [ ] cwd
+* [.] Configuration file parsing
+    * [o] Supervisord object
+        * [X] log files
+        * [X] cwd
         * [ ] include glob
     * [ ] Supervisor application object
         * [ ] log files

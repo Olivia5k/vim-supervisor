@@ -26,6 +26,10 @@ function! s:relpath(path, ...)
   endif
 endfunction
 
+function! s:strip(str)
+  return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
+endfunction
+
 " }}}
 " Interface {{{1
 
@@ -44,6 +48,36 @@ function! s:sup_path(...) dict abort
   return join(ret, '/')
 endfunction
 
+function! s:parse_config() dict abort
+  let config = {}
+  let header = ''
+  for line in readfile(self.config_file)
+    if line =~ '^\s*;' || line =~ '^\s*$'
+      continue  " Empty lines or comments
+    endif
+
+    if line =~ '^['
+      let m = matchlist(line, '\[\(.*\)\]')
+      if len(m) != 0
+        let header = m[1]
+      endif
+      continue
+    endif
+
+    let line = substitute(line, '\s*;.*$', '', '')
+    if !has_key(config, header)
+      let config[header] = {}
+    endif
+    let split = split(line, '=')
+    let key = s:strip(split[0])
+    let value = s:strip(split[1])
+
+    let config[header][key] = value
+  endfor
+
+  let self.config = config
+endfunction
+
 " }}}
 " Initialization {{{1
 
@@ -60,6 +94,8 @@ function! supervisor#BufInit()
   let sup.path = function('s:sup_path')
   let sup.config_file = sup.path('supervisord.conf')
 
+  let sup.parse_config = function('s:parse_config')
+  call sup.parse_config()
   let b:supervisor = sup
 
   call s:BufCommands()
