@@ -37,6 +37,20 @@ function! s:Edit(cmd)
   exe a:cmd s:relpath(b:supervisor.config_file)
 endfunction
 
+function! s:Status()
+  call b:supervisor.write_index()
+
+  pedit `=b:supervisor.index`
+  redraw!
+  wincmd P
+  nnoremap <buffer> <silent> q :<C-U>bdelete<CR>
+  setlocal bufhidden=wipe filetype=supervisor
+endfunction
+
+function! supervisor#ctl()
+  return b:supervisor
+endfunction
+
 " }}}
 " Supervisor object methods {{{1
 
@@ -78,6 +92,10 @@ function! s:parse_config() dict abort
   let self.config = config
 endfunction
 
+function! s:write_index() dict abort
+  silent exe '!supervisorctl -c' self.config_file 'status >' self.index
+endfunction
+
 " }}}
 " Initialization {{{1
 
@@ -86,6 +104,12 @@ function! s:BufCommands()
   com! -buffer Ssplit   :call s:Edit('split')
   com! -buffer Svsplit  :call s:Edit('vsplit')
   com! -buffer Stabedit :call s:Edit('tabedit')
+
+  com! -buffer Sstatus :call s:Status()
+endfunction
+
+function! s:BufMappings()
+  nmap <buffer> <silent> S :<C-U>Sstatus<cr>
 endfunction
 
 function! supervisor#BufInit()
@@ -96,9 +120,16 @@ function! supervisor#BufInit()
 
   let sup.parse_config = function('s:parse_config')
   call sup.parse_config()
+
+  " TODO: What if it does not have this config?
+  let piddir = fnamemodify(sup.config['supervisord']['pidfile'], ':h')
+  let sup.index = sup.path(piddir, 'index')
+  let sup.write_index = function('s:write_index')
+
   let b:supervisor = sup
 
   call s:BufCommands()
+  call s:BufMappings()
 endfunction
 
 " }}}

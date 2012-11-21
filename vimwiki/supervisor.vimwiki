@@ -46,5 +46,6 @@
         * [X] Straight up
         * [ ] Any parent containing?
     * [X] supervisord/supervisord.conf
+    * [ ] Abort completely if supervisorctl not found
 * [X] Configuration file editing
     * [X] The split variants
