@@ -41,10 +41,10 @@ function! s:Status()
   call b:supervisor.write_index()
 
   pedit `=b:supervisor.index`
-  redraw!
   wincmd P
+  setlocal ro bufhidden=wipe filetype=supervisor
   nnoremap <buffer> <silent> q :<C-U>bdelete<CR>
-  setlocal bufhidden=wipe filetype=supervisor
+  redraw!
 endfunction
 
 function! supervisor#ctl()
