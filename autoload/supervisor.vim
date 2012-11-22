@@ -37,6 +37,13 @@ function! s:Edit(cmd)
   exe a:cmd s:relpath(b:supervisor.config_file)
 endfunction
 
+function! supervisor#ctl()
+  return b:supervisor
+endfunction
+
+" }}}
+" Sstatus {{{1
+
 function! s:Status()
   call b:supervisor.write_index()
 
@@ -45,10 +52,6 @@ function! s:Status()
   setlocal ro bufhidden=wipe filetype=supervisor
   nnoremap <buffer> <silent> q :<C-U>bdelete<CR>
   redraw!
-endfunction
-
-function! supervisor#ctl()
-  return b:supervisor
 endfunction
 
 " }}}
