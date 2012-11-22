@@ -1,21 +1,21 @@
-* [ ] Control buffer
-    * [ ] Start mapping
-    * [ ] Get input from supervisorctl
-    * [ ] Buffer mappings
-        * [ ] q
+* [O] Control buffer
+    * [X] Start mapping
+    * [X] Get input from supervisorctl
+    * [.] Buffer mappings
+        * [X] q
         * [ ] R
         * [ ] S
         * [ ] o/e
-    * [ ] Syntax highlighting
-        * [ ] App names
-        * [ ] Statuses
-            * [ ] RUNNING
-            * [ ] STOPPED
-            * [ ] FATAL
-            * [ ] STARTING
-            * [ ] STOPPING
-        * [ ] pid
-        * [ ] times
+    * [X] Syntax highlighting
+        * [X] App names
+        * [X] Statuses
+            * [X] RUNNING
+            * [X] STOPPED
+            * [X] FATAL
+            * [X] STARTING
+            * [X] STOPPING
+        * [X] pid
+        * [X] times
 * [.] Configuration file parsing
     * [o] Supervisord object
         * [X] log files
@@ -27,10 +27,10 @@
 * [ ] Configuration
     * [ ] Project discovery
     * [ ] App directories
-* [ ] Commands
+* [.] Commands
     * [ ] :Supervisor
         * [ ] Tab completion
-    * [ ] :Sstatus
+    * [X] :Sstatus
     * [ ] Controllers
         * [ ] :Srestart, :Sstart, :Sstop
         * [ ] Tab completion
