@@ -65,10 +65,11 @@ function! s:sup_path(...) dict abort
   return join(ret, '/')
 endfunction
 
-function! s:parse_config() dict abort
+function! s:parse_config_file(file)
   let config = {}
   let header = ''
-  for line in readfile(self.config_file)
+
+  for line in readfile(a:file)
     if line =~ '^\s*;' || line =~ '^\s*$'
       continue  " Empty lines or comments
     endif
@@ -92,11 +93,87 @@ function! s:parse_config() dict abort
     let config[header][key] = value
   endfor
 
+  return config
+endfunction
+
+function! s:parse_config() dict abort
+  let config = s:parse_config_file(self.config_file)
+  if has_key(config, 'include') && has_key(config['include'], 'files')
+    for file in split(globpath(self.root, config['include']['files']), '\n')
+      for [key, value] in items(s:parse_config_file(file))
+        let config[key] = value
+      endfor
+    endfor
+  endif
+
+  let apps = {}
+  for [key, value] in items(config)
+    if key =~ '^program:'
+      let name = split(key, ':')[1]
+      let apps[name] = s:setup_app(name, value, self)
+      unlet config[key]
+    endif
+  endfor
+
+  let self.apps = apps
   let self.config = config
+endfunction
+
+function! s:setup_app(name, data, root)
+  let app = {}
+  let app.program_name = a:name
+  let app.config = a:data
+  let app.root = a:root
+
+  let app.cmd = function('SupervisorAppCmd')
+  let app.start = function('SupervisorAppStart')
+  let app.stop = function('SupervisorAppStop')
+  let app.restart = function('SupervisorAppRestart')
+  let app.logfile = function('SupervisorAppLogfile')
+  let app.stdout = function('SupervisorAppStdout')
+  let app.stderr = function('SupervisorAppStderr')
+
+  return app
 endfunction
 
 function! s:write_index() dict abort
   silent exe '!supervisorctl -c' self.config_file 'status >' self.index
+endfunction
+
+" }}}
+" App object methods {{{1
+
+function! SupervisorAppCmd(cmd) dict abort
+  exe '!supervisorctl -c' self.root.config_file a:cmd self.program_name
+endfunction
+
+function! SupervisorAppLogfile(pipe) dict abort
+  let logfile = self.config[a:pipe . '_logfile']
+
+  if logfile =~ '%(program_name)s'
+    let logfile = substitute(logfile, '%(program_name)s', self.program_name, 'g')
+  endif
+  return self.root.path(logfile)
+endfunction
+
+function! SupervisorAppStart() dict abort
+  return self.cmd('start')
+endfunction
+
+function! SupervisorAppStop() dict abort
+  return self.cmd('stop')
+endfunction
+
+function! SupervisorAppRestart() dict abort
+  return self.cmd('restart')
+endfunction
+
+function! SupervisorAppStdout() dict abort
+  return self.logfile('stdout')
+endfunction
+
+function! SupervisorAppStderr() dict abort
+  return self.logfile('stderr')
 endfunction
 
 " }}}

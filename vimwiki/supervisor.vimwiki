@@ -16,14 +16,15 @@
             * [X] STOPPING
         * [X] pid
         * [X] times
-* [.] Configuration file parsing
-    * [o] Supervisord object
+* [o] Configuration file parsing
+    * [X] Supervisord object
         * [X] log files
         * [X] cwd
-        * [ ] include glob
-    * [ ] Supervisor application object
-        * [ ] log files
-        * [ ] cwd
+        * [X] include glob
+    * [X] Supervisor application object
+        * [X] log files
+        * [X] cwd
+    * [ ] Handle python string formats
 * [ ] Configuration
     * [ ] Project discovery
     * [ ] App directories
