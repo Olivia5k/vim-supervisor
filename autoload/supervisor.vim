@@ -30,11 +30,41 @@ function! s:strip(str)
   return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
 endfunction
 
+function s:current_app()
+  let dir = fnamemodify(expand('%'), ':p:h')
+
+  for [app, data] in items(b:supervisor.apps)
+    if data.config.directory =~ '^' . dir
+      return app
+    endif
+  endfor
+
+  return ""
+endfunction
+
 " }}}
 " Interface {{{1
 
 function! s:Edit(cmd)
   exe a:cmd s:relpath(b:supervisor.config_file)
+endfunction
+
+function! s:Log(name, ...)
+  let cmd = a:0 ? a:1 : 'edit'
+
+  if &filetype == "supervisor"
+    " We are in the supervisor status buffer.
+    let app = s:status_app()
+    wincmd p
+  else
+    " We are in any other buffer
+    let app = s:current_app()
+    if app == ""
+      return s:Status('Could not determine app. Please browse manually.')
+    endif
+  endif
+
+  exe cmd s:relpath(b:supervisor.apps[app][a:name]())
 endfunction
 
 function! supervisor#ctl()
