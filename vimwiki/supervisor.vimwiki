@@ -1,11 +1,13 @@
 * [O] Control buffer
     * [X] Start mapping
     * [X] Get input from supervisorctl
-    * [.] Buffer mappings
+    * [o] Buffer mappings
         * [X] q
         * [ ] R
         * [ ] S
-        * [ ] o/e
+        * [X] o/e
+        * [X] O/E
+        * [X] <cr>
     * [X] Syntax highlighting
         * [X] App names
         * [X] Statuses
@@ -16,7 +18,7 @@
             * [X] STOPPING
         * [X] pid
         * [X] times
-* [o] Configuration file parsing
+* [X] Configuration file parsing
     * [X] Supervisord object
         * [X] log files
         * [X] cwd
@@ -24,7 +26,7 @@
     * [X] Supervisor application object
         * [X] log files
         * [X] cwd
-    * [ ] Handle python string formats
+    * [X] Handle python string formats
 * [ ] Configuration
     * [ ] Project discovery
     * [ ] App directories
@@ -35,7 +37,8 @@
     * [ ] Controllers
         * [ ] :Srestart, :Sstart, :Sstop
         * [ ] Tab completion
-    * [ ] :Stail
+    * [.] :Stail
+        * [X] Default implementation
         * [ ] TailBundle detection
         * [ ] Tab completion
 * [ ] Autocommands

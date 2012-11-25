@@ -74,14 +74,33 @@ endfunction
 " }}}
 " Sstatus {{{1
 
-function! s:Status()
+function! s:Status(...)
   call b:supervisor.write_index()
 
   pedit `=b:supervisor.index`
   wincmd P
-  setlocal ro bufhidden=wipe filetype=supervisor
-  nnoremap <buffer> <silent> q :<C-U>bdelete<CR>
+  setlocal ro bufhidden=wipe filetype=supervisor scrolljump=0
+
+  call s:BufCommands()
+  nnoremap <buffer> <silent> q :<C-U>bdelete<cr>
+  nnoremap <buffer> <silent> o :<C-U>Slog<cr>
+  nnoremap <buffer> <silent> e :<C-U>Serror<cr>
+  nnoremap <buffer> <silent> O :<C-U>Slog split<cr>
+  nnoremap <buffer> <silent> E :<C-U>Serror split<cr>
+  nnoremap <buffer> <silent> <cr> :<C-U>Slog<cr>
+
   redraw!
+
+  if a:0
+    " Error message. Print it.
+    echohl Error
+    echon a:1
+    echohl None
+  endif
+endfunction
+
+function! s:status_app()
+  return matchstr(getline("."), '^\(\S\+\)')
 endfunction
 
 " }}}
@@ -216,6 +235,10 @@ function! s:BufCommands()
   com! -buffer Stabedit :call s:Edit('tabedit')
 
   com! -buffer Sstatus :call s:Status()
+
+  com! -buffer -nargs=+ Stail :call s:Log(<f-args>)
+  com! -buffer -nargs=? Slog :call s:Log('stdout', <f-args>)
+  com! -buffer -nargs=? Serror :call s:Log('stderr', <f-args>)
 endfunction
 
 function! s:BufMappings()
