@@ -11,6 +11,10 @@ let g:autoloaded_supervisor = '0.1'
 let s:cpo_save = &cpo
 set cpo&vim
 
+" Gotten from kill -l on Arch Linux 2012-11-25
+let g:signal_list = "HUP INT QUIT ILL TRAP ABRT BUS FPE KILL USR1 SEGV USR2 PIPE ALRM TERM STKFLT CHLD CONT STOP TSTP TTIN TTOU URG XCPU XFSZ VTALRM PROF WINCH POLL PWR SYS"
+let g:signals = map(sort(split(g:signal_list, ' ')), "tolower(v:val)")
+
 " Utilities {{{1
 
 function! s:relpath(path, ...)
@@ -42,6 +46,22 @@ function s:current_app()
   return ""
 endfunction
 
+function s:determine_app()
+  if &filetype == "supervisor"
+    " We are in the supervisor status buffer.
+    return s:status_app()
+  else
+    " We are in any other buffer
+    let app = s:current_app()
+
+    if app == ""
+      call s:Status('Could not determine app. Please browse manually.')
+    endif
+
+    return app
+  endif
+endfunction
+
 " }}}
 " Interface {{{1
 
@@ -52,19 +72,54 @@ endfunction
 function! s:Log(name, ...)
   let cmd = a:0 ? a:1 : 'edit'
 
+  let app = s:determine_app()
+  if app == ""
+    return
+  endif
+
   if &filetype == "supervisor"
-    " We are in the supervisor status buffer.
-    let app = s:status_app()
     wincmd p
-  else
-    " We are in any other buffer
-    let app = s:current_app()
-    if app == ""
-      return s:Status('Could not determine app. Please browse manually.')
-    endif
   endif
 
   exe cmd s:relpath(b:supervisor.apps[app][a:name]())
+endfunction
+
+function! s:Command(cmd)
+  let cmd = a:cmd
+
+  let app = s:determine_app()
+  if app == ""
+    return
+  endif
+
+  if cmd == "toggle"
+    " If it is running, stop it; otherwise start it
+    let cmd = getline('.') =~ "RUNNING" ? 'stop' : 'start'
+  endif
+
+  return b:supervisor.apps[app][cmd]()
+endfunction
+
+function! s:Signal(...)
+  let signal = a:0 ? a:1 : 'kill'
+  let app = s:determine_app()
+  if app == ""
+    return
+  endif
+
+  if getline('.') !~ "RUNNING"
+    echohl Error
+    echon 'Error: Cannot kill - process not running'
+    echohl None
+    return
+  endif
+
+  if index(g:signals, signal) == -1
+    echo 'bad signal lol'
+    return
+  endif
+
+  return b:supervisor.apps[app].signal(signal)
 endfunction
 
 function! supervisor#ctl()
@@ -81,13 +136,19 @@ function! s:Status(...)
   wincmd P
   setlocal ro bufhidden=wipe filetype=supervisor scrolljump=0
 
-  call s:BufCommands()
+  call supervisor#BufInit(fnamemodify(expand('%'), ':p:h:h'))
+
   nnoremap <buffer> <silent> q :<C-U>bdelete<cr>
   nnoremap <buffer> <silent> o :<C-U>Slog<cr>
   nnoremap <buffer> <silent> e :<C-U>Serror<cr>
   nnoremap <buffer> <silent> O :<C-U>Slog split<cr>
   nnoremap <buffer> <silent> E :<C-U>Serror split<cr>
   nnoremap <buffer> <silent> <cr> :<C-U>Slog<cr>
+
+  nnoremap <buffer> <silent> S :<C-U>Stoggle<cr>
+  nnoremap <buffer> <silent> R :<C-U>Srestart<cr>
+  nnoremap <buffer> <silent> K :<C-U>Ssignal kill<cr>
+  nnoremap <buffer> <silent> H :<C-U>Ssignal hup<cr>
 
   redraw!
 
@@ -181,6 +242,8 @@ function! s:setup_app(name, data, root)
   let app.logfile = function('SupervisorAppLogfile')
   let app.stdout = function('SupervisorAppStdout')
   let app.stderr = function('SupervisorAppStderr')
+  let app.signal = function('SupervisorAppSignal')
+  let app.pid = function('SupervisorAppPidString')
 
   return app
 endfunction
@@ -225,6 +288,17 @@ function! SupervisorAppStderr() dict abort
   return self.logfile('stderr')
 endfunction
 
+function! SupervisorAppSignal(signal) dict abort
+  echo '!kill -s ' . a:signal . " " . self.pid() . ' &'
+  echon 'Sent ' a:signal ' to ' self.program_name
+endfunction
+
+function! SupervisorAppPidString() dict abort
+  " Returns a shell script executable that will turn into the pid number
+  " for the currently running instance of this app. Used when sending signals.
+  return "$(supervisorctl -c ".self.root.config_file." pid ". self.program_name .")"
+endfunction
+
 " }}}
 " Initialization {{{1
 
@@ -239,13 +313,24 @@ function! s:BufCommands()
   com! -buffer -nargs=+ Stail :call s:Log(<f-args>)
   com! -buffer -nargs=? Slog :call s:Log('stdout', <f-args>)
   com! -buffer -nargs=? Serror :call s:Log('stderr', <f-args>)
+
+  com! -buffer Stoggle  :call s:Command('toggle')
+  com! -buffer Sstart   :call s:Command('start')
+  com! -buffer Sstop    :call s:Command('stop')
+  com! -buffer Srestart :call s:Command('restart')
+
+  com! -buffer -nargs=? Ssignal :call s:Signal(<f-args>)
 endfunction
 
 function! s:BufMappings()
   nmap <buffer> <silent> S :<C-U>Sstatus<cr>
 endfunction
 
-function! supervisor#BufInit()
+function! supervisor#BufInit(...)
+  if a:0
+    let b:supervisor_root = a:1
+  endif
+
   let sup = {}
   let sup.root = b:supervisor_root
   let sup.path = function('s:sup_path')
