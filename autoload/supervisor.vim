@@ -323,7 +323,7 @@ function! s:BufCommands()
 endfunction
 
 function! s:BufMappings()
-  nmap <buffer> <silent> S :<C-U>Sstatus<cr>
+  nmap <buffer> <silent> <leader>s :<C-U>Sstatus<cr>
 endfunction
 
 function! supervisor#BufInit(...)
