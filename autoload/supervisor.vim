@@ -34,7 +34,7 @@ function! s:strip(str)
   return substitute(a:str, '^\s*\(.\{-}\)\s*$', '\1', '')
 endfunction
 
-function s:current_app()
+function! s:current_app()
   let dir = fnamemodify(expand('%'), ':p:h')
 
   for [app, data] in items(b:supervisor.apps)
@@ -46,7 +46,7 @@ function s:current_app()
   return ""
 endfunction
 
-function s:determine_app()
+function! s:determine_app()
   if &filetype == "supervisor"
     " We are in the supervisor status buffer.
     return s:status_app()
@@ -197,10 +197,12 @@ function! s:parse_config_file(file)
       let config[header] = {}
     endif
     let split = split(line, '=')
-    let key = s:strip(split[0])
-    let value = s:strip(split[1])
+    if len(split) == 2
+      let key = s:strip(split[0])
+      let value = s:strip(split[1])
 
-    let config[header][key] = value
+      let config[header][key] = value
+    endif
   endfor
 
   return config
